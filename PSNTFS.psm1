@@ -50,8 +50,20 @@ function Remove-DirectoryPermission{
     [CmdletBinding()]
     param(
         [parameter(Mandatory = $true)]
-        [string]$Path
+        [string]$Path,
+        [parameter(Mandatory = $true)]
+        [string]$User
     )
 
-    #See permissions script in PSGAMLS repository
+    $dirACL = Get-Acl -Path $Path
+
+    foreach($access in $dirACL.Access){
+        if($access.IdentityReference.Value -match $User){
+            $dirACL.RemoveAccessRule($access) | Out-Null
+        }
+    }
+
+    Set-Acl -Path $Path -AclObject $dirACL
+
+    return Get-DirectoryPermission -Path $Path
 }
