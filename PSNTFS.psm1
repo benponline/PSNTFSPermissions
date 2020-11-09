@@ -7,25 +7,38 @@
 #Remove-UserFullControlPermission
 #Get-UserPermission
 
-function Disable-FolderInheritance{
+function Disable-DirectoryInheritance{
     <#
     #>
 
     [CmdletBinding()]
     param(
         [parameter(Mandatory = $true)]
-        [string]$directoryPath
+        [string]$Path
     )
 
-    if(Test-Path -Path $directoryPath){
-        $directoryACL = Get-ACL -Path $directoryPath
+    if(Test-Path -Path $Path){
+        $directoryACL = Get-ACL -Path $Path
 
         #Disable inheritance and keep current permissions.
         $directoryACL.SetAccessRuleProtection($True, $True)
         
-        Set-Acl -Path $directoryPath -AclObject $directoryACL
+        Set-Acl -Path $Path -AclObject $directoryACL
     }else{
-        Write-Host "Unable to reach $directoryPath."
+        Write-Host "Unable to reach $Path."
     }
 
+}
+
+function Get-DirectoryPerminssion{
+    <#
+    #>
+    
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    return Get-Acl -Path $Path | Select-Object -ExpandProperty Access
 }
