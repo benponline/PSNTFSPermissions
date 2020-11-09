@@ -30,7 +30,7 @@ function Disable-DirectoryInheritance{
 
 }
 
-function Get-DirectoryPerminssion{
+function Get-DirectoryPermission{
     <#
     #>
     
@@ -41,4 +41,17 @@ function Get-DirectoryPerminssion{
     )
 
     return Get-Acl -Path $Path | Select-Object -ExpandProperty Access
+}
+
+function Remove-DirectoryPermission{
+    <#
+    #>
+    
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    #See permissions script in PSGAMLS repository
 }
