@@ -9,6 +9,26 @@
 
 function Disable-DirectoryInheritance{
     <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
     #>
 
     [CmdletBinding()]
@@ -30,6 +50,41 @@ function Disable-DirectoryInheritance{
 
 }
 
+function Get-DirectoryInheritance{
+    <#
+    #>
+
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if(Test-Path -Path $Path){
+        $directoryACL = (Get-ACL -Path $Path).Access
+
+        foreach($access in $directoryACL){
+            if($access.IsInherited -eq $true){
+                $result = [PSCustomObject]@{
+                    Path = $Path;
+                    HasInheritance = $true
+                }
+
+                return $result 
+            }
+        }
+
+        $result = [PSCustomObject]@{
+            Path = $Path;
+            HasInheritance = $false
+        }
+
+        return $result
+    }else{
+        Write-Host "Unable to reach $Path."
+    }
+}
+
 function Get-DirectoryPermission{
     <#
     #>
@@ -43,7 +98,7 @@ function Get-DirectoryPermission{
     return Get-Acl -Path $Path | Select-Object -ExpandProperty Access
 }
 
-function Remove-DirectoryPermission{
+function Get-DirectoryUserPermission{
     <#
     #>
     
@@ -52,13 +107,29 @@ function Remove-DirectoryPermission{
         [parameter(Mandatory = $true)]
         [string]$Path,
         [parameter(Mandatory = $true)]
-        [string]$User
+        [string]$SamAccountName
+    )
+
+    return Get-DirectoryPermission -Path $Path | Where-Object -Property IdentityReference -Match $SamAccountName
+}
+
+##
+function Remove-DirectoryUserPermission{
+    <#
+    #>
+    
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory = $true)]
+        [string]$Path,
+        [parameter(Mandatory = $true)]
+        [string]$SamAccountName
     )
 
     $dirACL = Get-Acl -Path $Path
 
     foreach($access in $dirACL.Access){
-        if($access.IdentityReference.Value -match $User){
+        if($access.IdentityReference.Value -match $SamAccountName){
             $dirACL.RemoveAccessRule($access) | Out-Null
         }
     }
