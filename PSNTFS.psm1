@@ -138,3 +138,41 @@ function Remove-DirectoryUserPermission{
 
     return Get-DirectoryPermission -Path $Path
 }
+
+function Set-DirectoryUserPermission{
+    <#
+    #>
+    
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [parameter(Mandatory = $true)]
+        [string]$SamAccountName,
+        
+        [parameter()]
+        [Switch] $FullControl,
+        
+        [parameter()]
+        [Switch] $Modify,
+        
+        [parameter()]
+        [Switch] $ReadAndExecute,
+
+        [parameter()]
+        [Switch] $ListContents
+    )
+    ###
+    $dirACL = Get-Acl -Path $Path
+
+    foreach($access in $dirACL.Access){
+        if($access.IdentityReference.Value -match $SamAccountName){
+            $dirACL.RemoveAccessRule($access) | Out-Null
+        }
+    }
+
+    Set-Acl -Path $Path -AclObject $dirACL
+
+    return Get-DirectoryPermission -Path $Path
+}
