@@ -141,6 +141,27 @@ function Remove-DirectoryUserPermission{
 
 function Set-DirectoryUserPermission{
     <#
+    https://adamtheautomator.com/how-to-manage-ntfs-permissions-with-powershell/ 
+
+    ReadData
+    CreateFiles
+    AppendData
+    ReadExtendedAttributes
+    WriteExtendedAttributes
+    ExecuteFile
+    DeleteSubdirectoriesAndFiles
+    ReadAttributes
+    WriteAttributes
+    Write
+    Delete
+    ReadPermissions
+    Read
+    ReadAndExecute
+    Modify
+    ChangePermissions
+    TakeOwnership
+    Synchronize
+    FullControl
     #>
     
     [CmdletBinding()]
@@ -158,21 +179,30 @@ function Set-DirectoryUserPermission{
         [Switch] $Modify,
         
         [parameter()]
-        [Switch] $ReadAndExecute,
-
-        [parameter()]
-        [Switch] $ListContents
+        [Switch] $ReadAndExecute
     )
-    ###
+    
+    $dirPrinciple = $SamAccountName
+    $dirPermission = Switch{
+
+    }
+    $dirAccess = "Allow"
+
+
+    [parameter(Mandatory = $true)]
+    [string]$dirPermission,
+
+    [parameter(Mandatory = $true)]
+    [string]$dirAccess
+
     $dirACL = Get-Acl -Path $Path
 
-    foreach($access in $dirACL.Access){
-        if($access.IdentityReference.Value -match $SamAccountName){
-            $dirACL.RemoveAccessRule($access) | Out-Null
-        }
-    }
+    $dirRule = New-Object System.Security.AccessControl.FileSystemAccessRule($dirPrinciple,$dirPermission,`
+        "ContainerInherit, ObjectInherit", "None", $dirAccess)
 
-    Set-Acl -Path $Path -AclObject $dirACL
+    $dirACL.SetAccessRule($dirRule)
+
+    Set-Acl -Path $dirPath -AclObject $dirACL
 
     return Get-DirectoryPermission -Path $Path
 }
