@@ -171,38 +171,17 @@ function Set-DirectoryUserPermission{
 
         [parameter(Mandatory = $true)]
         [string]$SamAccountName,
-        
-        [parameter()]
-        [Switch] $FullControl,
-        
-        [parameter()]
-        [Switch] $Modify,
-        
-        [parameter()]
-        [Switch] $ReadAndExecute
+
+        [ValidateSet("FullControl","Modify","ReadAndExecute","Read","Write")]
+        [string]$Permission
     )
     
-    $dirPrinciple = $SamAccountName
-    $dirPermission = Switch{
+    $access = "Allow"
 
-    }
-    $dirAccess = "Allow"
-
-
-    [parameter(Mandatory = $true)]
-    [string]$dirPermission,
-
-    [parameter(Mandatory = $true)]
-    [string]$dirAccess
-
-    $dirACL = Get-Acl -Path $Path
-
-    $dirRule = New-Object System.Security.AccessControl.FileSystemAccessRule($dirPrinciple,$dirPermission,`
-        "ContainerInherit, ObjectInherit", "None", $dirAccess)
-
-    $dirACL.SetAccessRule($dirRule)
-
-    Set-Acl -Path $dirPath -AclObject $dirACL
+    $acl = Get-Acl -Path $Path
+    $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $access)
+    $acl.SetAccessRule($aclRule)
+    Set-Acl -Path $Path -AclObject $acl
 
     return Get-DirectoryPermission -Path $Path
 }
