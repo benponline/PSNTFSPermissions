@@ -1,13 +1,13 @@
 #Add-UserReadPermission
 #Add-UserModifyPermission
 #Add-UserFullControlPermission
-#Add-UserAsOwner
+#Set-UserAsOwner
 #Remove-UserReadPermission
 #Remove-UserModifyPermission
 #Remove-UserFullControlPermission
 #Get-UserPermission
 
-function Disable-DirectoryInheritance{
+function Disable-ItemInheritance{
     <#
     .SYNOPSIS
 
@@ -47,11 +47,30 @@ function Disable-DirectoryInheritance{
     }else{
         Write-Host "Unable to reach $Path."
     }
-
 }
 
-function Get-DirectoryInheritance{
+function Get-ItemInheritance{
     <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
     #>
 
     [CmdletBinding()]
@@ -85,8 +104,28 @@ function Get-DirectoryInheritance{
     }
 }
 
-function Get-DirectoryPermission{
+function Get-ItemPermission{
     <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
     #>
     
     [CmdletBinding()]
@@ -98,8 +137,28 @@ function Get-DirectoryPermission{
     return Get-Acl -Path $Path | Select-Object -ExpandProperty Access
 }
 
-function Get-DirectoryUserPermission{
+function Get-ItemUserPermission{
     <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
     #>
     
     [CmdletBinding()]
@@ -114,8 +173,28 @@ function Get-DirectoryUserPermission{
 }
 
 ##
-function Remove-DirectoryUserPermission{
+function Remove-ItemUserPermission{
     <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
     #>
     
     [CmdletBinding()]
@@ -139,29 +218,29 @@ function Remove-DirectoryUserPermission{
     return Get-DirectoryPermission -Path $Path
 }
 
-function Set-DirectoryUserPermission{
+function Set-ItemUserPermission{
     <#
-    https://adamtheautomator.com/how-to-manage-ntfs-permissions-with-powershell/ 
+    .SYNOPSIS
 
-    ReadData
-    CreateFiles
-    AppendData
-    ReadExtendedAttributes
-    WriteExtendedAttributes
-    ExecuteFile
-    DeleteSubdirectoriesAndFiles
-    ReadAttributes
-    WriteAttributes
-    Write
-    Delete
-    ReadPermissions
-    Read
-    ReadAndExecute
-    Modify
-    ChangePermissions
-    TakeOwnership
-    Synchronize
-    FullControl
+    .DESCRIPTION
+
+    .PARAMETER Name
+
+    .INPUTS
+
+    .OUTPUTS
+
+    .NOTES
+
+    .EXAMPLE 
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
+    Developed with help from https://adamtheautomator.com/how-to-manage-ntfs-permissions-with-powershell/ 
     #>
     
     [CmdletBinding()]
@@ -172,16 +251,19 @@ function Set-DirectoryUserPermission{
         [parameter(Mandatory = $true)]
         [string]$SamAccountName,
 
+        [parameter(Mandatory = $true)]
         [ValidateSet("FullControl","Modify","ReadAndExecute","Read","Write")]
-        [string]$Permission
+        [string]$Permission,
+
+        [parameter(Mandatory = $true)]
+        [ValidateSet("Allow","Deny")]
+        [string]$Access
     )
-    
-    $access = "Allow"
 
     $acl = Get-Acl -Path $Path
-    $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $access)
+    $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $Access)
     $acl.SetAccessRule($aclRule)
     Set-Acl -Path $Path -AclObject $acl
 
-    return Get-DirectoryPermission -Path $Path
+    return Get-ItemPermission -Path $Path
 }
