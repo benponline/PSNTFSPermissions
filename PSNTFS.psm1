@@ -7,6 +7,8 @@
 #Remove-UserFullControlPermission
 #Get-UserPermission
 
+#https://blog.netwrix.com/2018/04/18/how-to-manage-file-system-acls-with-powershell-scripts/#How%20to%20disable%20and%20enable%20permission%20inheritance
+
 function Disable-ItemInheritance{
     <#
     .SYNOPSIS
@@ -27,6 +29,7 @@ function Disable-ItemInheritance{
         [bool]HasInheritance        Inheritance status
 
     .NOTES
+    Function is best used when run as an administrator.
 
     .EXAMPLE
     Disable-ItemInheritance -Path "C:\Directory\SubDirectory"
@@ -103,6 +106,7 @@ function Enable-ItemInheritance{
         [bool]HasInheritance        Inheritance status
 
     .NOTES
+    Function is best used when run as an administrator.
 
     .EXAMPLE
     Enable-ItemInheritance -Path "C:\Directory\SubDirectory"
@@ -144,11 +148,11 @@ function Enable-ItemInheritance{
         foreach($itemPath in $itemPaths){
 
             if(Test-Path -Path $itemPath){
-                $directoryACL = Get-ACL -Path $itemPath
+                $itemACL = Get-ACL -Path $itemPath
 
                 #Disable inheritance and keep current permissions.
-                $directoryACL.SetAccessRuleProtection($False, $True)
-                Set-Acl -Path $itemPath -AclObject $directoryACL
+                $itemACL.SetAccessRuleProtection($False, $True)
+                Set-Acl -Path $itemPath -AclObject $itemACL
                 $itemUpdates.Add((Get-ItemInheritance -Path $itemPath))
             }else{
                 Write-Host "Unable to reach $itemPath."
@@ -162,18 +166,25 @@ function Enable-ItemInheritance{
 function Get-ItemInheritance{
     <#
     .SYNOPSIS
+    Gets the inheritance status of an item.
 
     .DESCRIPTION
+    Gets the inheritance status of a directory or file.
 
-    .PARAMETER Name
+    .PARAMETER Path
+    Location of the directory or file.
 
     .INPUTS
+    PS Objects with a property name of "Path" or "FullName" for the location of the item.
 
     .OUTPUTS
+    PS Object with the following properties:
+        [string]Path                Location of the item
+        [bool]HasInheritance        Inheritance status
 
     .NOTES
 
-    .EXAMPLE 
+    .EXAMPLE
 
     .LINK
     By Ben Peterson
@@ -185,32 +196,41 @@ function Get-ItemInheritance{
 
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
-        [string]$Path
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
+        [Alias('FullName')]
+        [string[]]$Path
     )
 
-    if(Test-Path -Path $Path){
-        $directoryACL = (Get-ACL -Path $Path).Access
+    begin{
 
-        foreach($access in $directoryACL){
-            if($access.IsInherited -eq $true){
-                $result = [PSCustomObject]@{
-                    Path = $Path;
-                    HasInheritance = $true
+    }
+
+    process{}
+
+    end{
+        if(Test-Path -Path $Path){
+            $directoryACL = (Get-ACL -Path $Path).Access
+
+            foreach($access in $directoryACL){
+                if($access.IsInherited -eq $true){
+                    $result = [PSCustomObject]@{
+                        Path = $Path;
+                        HasInheritance = $true
+                    }
+
+                    return $result 
                 }
-
-                return $result 
             }
-        }
 
-        $result = [PSCustomObject]@{
-            Path = $Path;
-            HasInheritance = $false
-        }
+            $result = [PSCustomObject]@{
+                Path = $Path;
+                HasInheritance = $false
+            }
 
-        return $result
-    }else{
-        Write-Host "Unable to reach $Path."
+            return $result
+        }else{
+            Write-Host "Unable to reach $Path."
+        }
     }
 }
 
