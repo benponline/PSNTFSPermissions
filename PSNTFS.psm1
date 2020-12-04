@@ -10,18 +10,33 @@
 function Disable-ItemInheritance{
     <#
     .SYNOPSIS
+    Disables inheritance on an item.
 
     .DESCRIPTION
+    Disables inheritance on a directory or folder. All current perrmissions are maintained. Current permissions are retained.
 
-    .PARAMETER Name
+    .PARAMETER Path
+    Location of the directory or file.
 
     .INPUTS
+    PS Objects with a property name of "Path" or "FullName" for the location of the item.
 
     .OUTPUTS
+    PS Object with the following properties:
+        [string]Path                Location of the item
+        [bool]HasInheritance        Inheritance status
 
     .NOTES
 
-    .EXAMPLE 
+    .EXAMPLE
+    Disable-ItemInheritance -Path "C:\Directory\SubDirectory"
+
+    Disables the directory "SubDirectory" and sends output to the console confirming the change.
+
+    .EXAMPLE
+    "C:\Directory\SubDirectory","C:\Directory\SubDirectory2" | Disable-ItemInheritance
+    
+    Disables the directories "SubDirectory" and "SubDirectory2" and sends output to the console confirming the changes.
 
     .LINK
     By Ben Peterson
@@ -33,19 +48,114 @@ function Disable-ItemInheritance{
 
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
-        [string]$Path
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
+        [Alias('FullName')]
+        [string[]]$Path
     )
 
-    if(Test-Path -Path $Path){
-        $directoryACL = Get-ACL -Path $Path
+    begin{
+        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $itemUpdates = [System.Collections.Generic.List[psobject]]::new()
+    }
 
-        #Disable inheritance and keep current permissions.
-        $directoryACL.SetAccessRuleProtection($True, $True)
-        
-        Set-Acl -Path $Path -AclObject $directoryACL
-    }else{
-        Write-Host "Unable to reach $Path."
+    process{
+        foreach($p in $Path){
+            $itemPaths.Add($p)
+        }
+    }
+
+    end{
+        foreach($itemPath in $itemPaths){
+
+            if(Test-Path -Path $itemPath){
+                $directoryACL = Get-ACL -Path $itemPath
+
+                #Disable inheritance and keep current permissions.
+                $directoryACL.SetAccessRuleProtection($True, $True)
+                Set-Acl -Path $itemPath -AclObject $directoryACL
+                $itemUpdates.Add((Get-ItemInheritance -Path $itemPath))
+            }else{
+                Write-Host "Unable to reach $itemPath."
+            }
+        }
+
+        return $itemUpdates
+    }
+}
+
+function Enable-ItemInheritance{
+    <#
+    .SYNOPSIS
+    Enables inheritance on an item.
+
+    .DESCRIPTION
+    Enables inheritance on a directory or folder. All current perrmissions are maintained. Current permissions are retained.
+
+    .PARAMETER Path
+    Location of the directory or file.
+
+    .INPUTS
+    PS Objects with a property name of "Path" or "FullName" for the location of the item.
+
+    .OUTPUTS
+    PS Object with the following properties:
+        [string]Path                Location of the item
+        [bool]HasInheritance        Inheritance status
+
+    .NOTES
+
+    .EXAMPLE
+    Enable-ItemInheritance -Path "C:\Directory\SubDirectory"
+
+    Enables the directory "SubDirectory" and sends output to the console confirming the change.
+
+    .EXAMPLE
+    "C:\Directory\SubDirectory","C:\Directory\SubDirectory2" | Disable-ItemInheritance
+    
+    Enables the directories "SubDirectory" and "SubDirectory2" and sends output to the console confirming the changes.
+
+    .LINK
+    By Ben Peterson
+    linkedin.com/in/benponline
+    github.com/benponline
+    twitter.com/benponline
+    paypal.me/teknically
+    #>
+
+    [CmdletBinding()]
+    param(
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
+        [Alias('FullName')]
+        [string[]]$Path
+    )
+
+    begin{
+        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $itemUpdates = [System.Collections.Generic.List[psobject]]::new()
+    }
+
+    process{
+        foreach($p in $Path){
+            $itemPaths.Add($p)
+        }
+    }
+
+    end{
+        foreach($itemPath in $itemPaths){
+
+            if(Test-Path -Path $itemPath){
+                $directoryACL = Get-ACL -Path $itemPath
+
+                #Disable inheritance and keep current permissions.
+                $directoryACL.SetAccessRuleProtection($False, $True)
+                Set-Acl -Path $itemPath -AclObject $directoryACL
+                $itemUpdates.Add((Get-ItemInheritance -Path $itemPath))
+            }else{
+                Write-Host "Unable to reach $itemPath."
+            }
+        }
+
+        return $itemUpdates
     }
 }
 
