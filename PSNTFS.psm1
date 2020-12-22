@@ -199,39 +199,47 @@ function Get-ItemInheritance{
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
         [Alias('FullName')]
-        [string[]]$Path
+        [string]$Path
     )
 
     begin{
-
+        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
-    process{}
+    process{
+        foreach($p in $Path){
+            $itemPaths.Add($p);
+        }
+    }
 
     end{
-        if(Test-Path -Path $Path){
-            $directoryACL = (Get-ACL -Path $Path).Access
+        foreach($item in $itemPaths){
+            if(Test-Path -Path $item){
+                $directoryACL = (Get-ACL -Path $item).Access
 
-            foreach($access in $directoryACL){
-                if($access.IsInherited -eq $true){
-                    $result = [PSCustomObject]@{
-                        Path = $Path;
-                        HasInheritance = $true
+                foreach($access in $directoryACL){
+                    if($access.IsInherited -eq $true){
+                        $result = [PSCustomObject]@{
+                            Path = $item;
+                            HasInheritance = $true
+                        }
+
+                        return $result 
                     }
-
-                    return $result 
                 }
-            }
 
-            $result = [PSCustomObject]@{
-                Path = $Path;
-                HasInheritance = $false
-            }
+                $results.Add([PSCustomObject]@{
+                    Path = $item;
+                    HasInheritance = $false
+                })
 
-            return $result
-        }else{
-            Write-Host "Unable to reach $Path."
+            }else{
+                Write-Host "Unable to reach $item."
+            }
         }
+
+        return $results
     }
 }
 
