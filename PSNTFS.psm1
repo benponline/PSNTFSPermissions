@@ -272,6 +272,13 @@ function Get-ItemPermission{
     .INPUTS
 
     .OUTPUTS
+    PS Object with the following properties:
+        [string]AccessControlType   Allow / Deny
+        [string[]]FileSystemRights  Permissions
+        [string]IdentityReference   Account
+        [string]InheritanceFlags    
+        [bool]IsInherited           True / False
+        [string]PropagationFlags    
 
     .NOTES
 
