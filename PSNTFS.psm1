@@ -163,7 +163,6 @@ function Enable-ItemInheritance{
     }
 }
 
-###
 function Get-ItemInheritance{
     <#
     .SYNOPSIS
@@ -180,12 +179,25 @@ function Get-ItemInheritance{
 
     .OUTPUTS
     PS Object with the following properties:
-        [string]Path                Location of the item
+        [string]FullName                Location of the item
         [bool]HasInheritance        Inheritance status
 
     .NOTES
 
     .EXAMPLE
+    Get-ItemInheritance -Path "C:\Directory\SubDirectory"
+
+    Gets the inheritance status of "SubDirectory".
+
+    .EXAMPLE
+    "C:\Directory\SubDirectory","C:\Directory\SubDirectory2" | Get-ItemInheritance
+    
+    Gets the inheritance status of the directories "SubDirectory" and "SubDirectory2".
+
+    .EXAMPLE
+    Get-ChildItem -Path "C:\Directory" | Get-ItemInheritance
+    
+    Gets the inheritance status of all the directories and files inside of "C:\Directory".
 
     .LINK
     By Ben Peterson
@@ -199,7 +211,7 @@ function Get-ItemInheritance{
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
         [Alias('FullName')]
-        [string]$Path
+        [string[]]$Path
     )
 
     begin{
@@ -217,6 +229,7 @@ function Get-ItemInheritance{
         foreach($item in $itemPaths){
             if(Test-Path -Path $item){
                 $directoryACL = (Get-ACL -Path $item).Access
+                $hasInheritance = $false
 
                 foreach($access in $directoryACL){
                     if($access.IsInherited -eq $true){
@@ -225,14 +238,18 @@ function Get-ItemInheritance{
                             HasInheritance = $true
                         }
 
-                        return $result 
+                        $hasInheritance = $true
+                        $results.Add($result)
+                        break
                     }
                 }
 
-                $results.Add([PSCustomObject]@{
-                    Path = $item;
-                    HasInheritance = $false
-                })
+                if($hasInheritance -eq $false){
+                    $results.Add([PSCustomObject]@{
+                        Path = $item;
+                        HasInheritance = $false
+                    })
+                }
 
             }else{
                 Write-Host "Unable to reach $item."
@@ -243,6 +260,7 @@ function Get-ItemInheritance{
     }
 }
 
+###
 function Get-ItemPermission{
     <#
     .SYNOPSIS
