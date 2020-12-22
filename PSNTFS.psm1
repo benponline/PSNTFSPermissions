@@ -273,6 +273,7 @@ function Get-ItemPermission{
 
     .OUTPUTS
     PS Object with the following properties:
+        [string]Path
         [string]AccessControlType   Allow / Deny
         [string[]]FileSystemRights  Permissions
         [string]IdentityReference   Account
@@ -294,11 +295,34 @@ function Get-ItemPermission{
     
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
-        [string]$Path
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $true)]
+        [Alias('FullName')]
+        [string[]]$Path
     )
 
-    return Get-Acl -Path $Path | Select-Object -ExpandProperty Access
+    begin{
+        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
+    }
+
+    process{
+        foreach($p in $Path){
+            $itemPaths.Add($p)
+        }
+    }
+
+    end{
+        foreach($item in $itemPaths){
+            $itemResults = Get-Acl -Path $item | Select-Object -ExpandProperty Access
+
+            foreach($result in $itemResults){
+                Add-Member -InputObject $result -MemberType "NoteProperty" -Name "Path" -Value $item
+                $results.Add($result)
+            }
+        }
+
+        return $results
+    }
 }
 
 function Get-ItemUserPermission{
