@@ -260,22 +260,25 @@ function Get-ItemInheritance{
     }
 }
 
-###
 function Get-ItemPermission{
     <#
     .SYNOPSIS
+    Gets the NTFS permissions from an item.
 
     .DESCRIPTION
+    Gets the NTFS permissions from a directory or file.
 
-    .PARAMETER Name
+    .PARAMETER Path
+    Location of the directory or file.
 
     .INPUTS
+    You can pipe PSObjects to this function that contain a property named "Path" or "FullName".
 
     .OUTPUTS
     PS Object with the following properties:
         [string]Path
         [string]AccessControlType   Allow / Deny
-        [string[]]FileSystemRights  Permissions
+        [string]FileSystemRights    Permissions
         [string]IdentityReference   Account
         [string]InheritanceFlags    
         [bool]IsInherited           True / False
@@ -283,7 +286,26 @@ function Get-ItemPermission{
 
     .NOTES
 
-    .EXAMPLE 
+    .EXAMPLE
+    Get-ItemPermission -Path "C:\Directory\File.txt"
+
+    Gets permissions for "File.txt".
+
+    .EXAMPLE
+    Get-ItemPermission -Path "C:\Directory\File.txt","C:\Directory\File2.txt"
+
+    Gets permissions for "File.txt" and "File2.txt".
+
+    .EXAMPLE
+    "C:\Directory\File.txt","C:\Directory\File2.txt" | Get-ItemPermission
+
+    Gets permissions for "File.txt" and "File2.txt".
+
+    .EXAMPLE
+    Get-ChildItem -Path "C:\Directory" | Get-ItemPermission
+
+    Gets permissions for all directories and files in "C:\Directory".
+
 
     .LINK
     By Ben Peterson
@@ -325,6 +347,7 @@ function Get-ItemPermission{
     }
 }
 
+###
 function Get-ItemUserPermission{
     <#
     .SYNOPSIS
@@ -336,6 +359,15 @@ function Get-ItemUserPermission{
     .INPUTS
 
     .OUTPUTS
+    .OUTPUTS
+    PS Object with the following properties:
+        [string]Path
+        [string]AccessControlType   Allow / Deny
+        [string]FileSystemRights    Permissions
+        [string]IdentityReference   Account
+        [string]InheritanceFlags    
+        [bool]IsInherited           True / False
+        [string]PropagationFlags    
 
     .NOTES
 
@@ -357,7 +389,11 @@ function Get-ItemUserPermission{
         [string]$SamAccountName
     )
 
-    return Get-DirectoryPermission -Path $Path | Where-Object -Property IdentityReference -Match $SamAccountName
+    $userPermissions = Get-ItemPermission -Path $Path | Where-Object -Property IdentityReference -Match $SamAccountName
+
+    Add-Member -InputObject $userPermissions -MemberType "NoteProperty" -Name "Path" -Value $Path
+
+    return $userPermissions
 }
 
 ##
