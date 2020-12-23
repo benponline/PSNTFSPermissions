@@ -351,14 +351,17 @@ function Get-ItemPermission{
 function Get-ItemUserPermission{
     <#
     .SYNOPSIS
+    Gets user permissions for an item.
 
     .DESCRIPTION
+    Gets a specific user's NTFS permissions for a directory or file. 
 
-    .PARAMETER Name
+    .PARAMETER Path
+
+    .PARAMETER SamAccountName
 
     .INPUTS
 
-    .OUTPUTS
     .OUTPUTS
     PS Object with the following properties:
         [string]Path
@@ -383,20 +386,39 @@ function Get-ItemUserPermission{
     
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
-        [string]$Path,
+        [parameter(ValueFromPipeline=$True,Mandatory = $true)]
+        [Alias('FullName')]
+        [string[]]$Path,
+
         [parameter(Mandatory = $true)]
         [string]$SamAccountName
     )
 
-    $userPermissions = Get-ItemPermission -Path $Path | Where-Object -Property IdentityReference -Match $SamAccountName
+    begin{
+        $itemPaths = [System.Collections.Generic.List[string]]::new()
+    }
 
-    Add-Member -InputObject $userPermissions -MemberType "NoteProperty" -Name "Path" -Value $Path
+    Process{
+        foreach ($p in $Path) {
+            $itemPaths.Add($p);
+        }
+    }
 
-    return $userPermissions
+    end{
+        $itemPathsArray = [string[]]::new($itemPaths.Count)
+
+        $counter = 0
+        foreach ($p in $itemPaths) {
+            $itemPathsArray[$counter] = $p
+            $counter++
+        }
+
+        $userPermissions = Get-ItemPermission -Path $itemPathsArray | Where-Object -Property IdentityReference -Match $SamAccountName
+
+        return $userPermissions
+    }
 }
 
-##
 function Remove-ItemUserPermission{
     <#
     .SYNOPSIS
@@ -425,6 +447,7 @@ function Remove-ItemUserPermission{
     param(
         [parameter(Mandatory = $true)]
         [string]$Path,
+
         [parameter(Mandatory = $true)]
         [string]$SamAccountName
     )
