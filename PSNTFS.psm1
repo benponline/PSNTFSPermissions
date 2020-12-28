@@ -357,8 +357,10 @@ function Get-ItemUserPermission{
     Gets a specific user's NTFS permissions for a directory or file. 
 
     .PARAMETER Path
+    Location of the directory or file.
 
     .PARAMETER SamAccountName
+    User account the function is checking for.
 
     .INPUTS
 
@@ -374,7 +376,20 @@ function Get-ItemUserPermission{
 
     .NOTES
 
-    .EXAMPLE 
+    .EXAMPLE
+    Get-ItemUserPermission -Path "C:\Directory\File.txt" -SamAccountName "Thor"
+
+    Returns any permissions for the "Thor" user account on "File.txt".
+
+    .EXAMPLE
+    Get-ItemUserPermission -Path "C:\Directory\File.txt","C:\Directory\File2.txt" -SamAccountName "Thor"
+
+    Returns any permissions for the "Thor" user account on "File.txt" and "File2.txt".
+
+    .EXAMPLE
+    "C:\Directory\File.txt","C:\Directory\File2.txt" | Get-ItemUserPermission -SamAccountName "Thor"
+
+    Returns any permissions for the "Thor" user account on "File.txt" and "File2.txt".
 
     .LINK
     By Ben Peterson
