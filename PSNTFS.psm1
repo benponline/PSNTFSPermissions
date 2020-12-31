@@ -347,7 +347,6 @@ function Get-ItemPermission{
     }
 }
 
-###
 function Get-ItemUserPermission{
     <#
     .SYNOPSIS
@@ -434,6 +433,7 @@ function Get-ItemUserPermission{
     }
 }
 
+###
 function Remove-ItemUserPermission{
     <#
     .SYNOPSIS
