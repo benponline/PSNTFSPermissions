@@ -306,7 +306,6 @@ function Get-ItemPermission{
 
     Gets permissions for all directories and files in "C:\Directory".
 
-
     .LINK
     By Ben Peterson
     linkedin.com/in/benponline
@@ -347,7 +346,7 @@ function Get-ItemPermission{
     }
 }
 
-function Get-ItemUserPermission{
+function Get-UserPermission{
     <#
     .SYNOPSIS
     Gets user permissions for an item.
@@ -400,7 +399,7 @@ function Get-ItemUserPermission{
     
     [CmdletBinding()]
     param(
-        [parameter(ValueFromPipeline=$True,Mandatory = $true)]
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $true)]
         [Alias('FullName')]
         [string[]]$Path,
 
@@ -434,13 +433,15 @@ function Get-ItemUserPermission{
 }
 
 ###
-function Remove-ItemUserPermission{
+function Remove-UserPermission{
     <#
     .SYNOPSIS
 
     .DESCRIPTION
 
-    .PARAMETER Name
+    .PARAMETER Path
+
+    .PARAMETER SamAccountName
 
     .INPUTS
 
@@ -460,7 +461,7 @@ function Remove-ItemUserPermission{
     
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
         [string]$Path,
 
         [parameter(Mandatory = $true)]
@@ -480,7 +481,7 @@ function Remove-ItemUserPermission{
     return Get-DirectoryPermission -Path $Path
 }
 
-function Set-ItemUserPermission{
+function Set-UserPermission{
     <#
     .SYNOPSIS
 
@@ -507,7 +508,7 @@ function Set-ItemUserPermission{
     
     [CmdletBinding()]
     param(
-        [parameter(Mandatory = $true)]
+        [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
         [string]$Path,
 
         [parameter(Mandatory = $true)]
