@@ -1,3 +1,5 @@
+#Design to be used with Get-ChildItem
+
 #Add-UserReadPermission
 #Add-UserModifyPermission
 #Add-UserFullControlPermission
@@ -15,17 +17,19 @@ function Disable-ItemInheritance{
     Disables inheritance on an item.
 
     .DESCRIPTION
-    Disables inheritance on a directory or folder. All current perrmissions are maintained. Current permissions are retained.
+    Disables inheritance on a directory or folder. All current permissions are maintained. Current permissions are retained.
 
     .PARAMETER Path
     Location of the directory or file.
 
     .INPUTS
-    PS Objects with a property name of "Path" or "FullName" for the location of the item.
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
     PS Object with the following properties:
-        [string]Path                Location of the item
+        [string]FullName            Location of the item
         [bool]HasInheritance        Inheritance status
 
     .NOTES
@@ -52,37 +56,35 @@ function Disable-ItemInheritance{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [Alias('FullName')]
-        [string[]]$Path
+        [Alias('Path')]
+        [string]$FullName
     )
 
     begin{
-        $itemPaths = [System.Collections.Generic.List[string]]::new()
-        $itemUpdates = [System.Collections.Generic.List[psobject]]::new()
+        $fullNames = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
     process{
-        foreach($p in $Path){
-            $itemPaths.Add($p)
-        }
+        $fullNames.Add($FullName)
     }
 
     end{
-        foreach($itemPath in $itemPaths){
+        foreach($fn in $fullNames){
 
-            if(Test-Path -Path $itemPath){
-                $directoryACL = Get-ACL -Path $itemPath
+            if(Test-Path -Path $fn){
+                $directoryACL = Get-ACL -Path $fn
 
-                #Disable inheritance and keep current permissions.
+                #Disable inheritance and keeps current permissions.
                 $directoryACL.SetAccessRuleProtection($True, $True)
-                Set-Acl -Path $itemPath -AclObject $directoryACL
-                $itemUpdates.Add((Get-ItemInheritance -Path $itemPath))
+                Set-Acl -Path $fn -AclObject $directoryACL
+                $results.Add((Get-ItemInheritance -Path $fn))
             }else{
-                Write-Host "Unable to reach $itemPath."
+                Write-Host "Unable to reach $fn."
             }
         }
 
-        return $itemUpdates
+        return $results
     }
 }
 
@@ -98,7 +100,9 @@ function Enable-ItemInheritance{
     Location of the directory or file.
 
     .INPUTS
-    PS Objects with a property name of "Path" or "FullName" for the location of the item.
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
     PS Object with the following properties:
@@ -129,37 +133,34 @@ function Enable-ItemInheritance{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [Alias('FullName')]
-        [string[]]$Path
+        [Alias('Path')]
+        [string[]]$FullName
     )
 
     begin{
-        $itemPaths = [System.Collections.Generic.List[string]]::new()
-        $itemUpdates = [System.Collections.Generic.List[psobject]]::new()
+        $fullNames = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
     process{
-        foreach($p in $Path){
-            $itemPaths.Add($p)
-        }
+        $fullNames.Add($FullName)
     }
 
     end{
-        foreach($itemPath in $itemPaths){
-
-            if(Test-Path -Path $itemPath){
-                $itemACL = Get-ACL -Path $itemPath
+        foreach($fn in $fullNames){
+            if(Test-Path -Path $fn){
+                $itemACL = Get-ACL -Path $fn
 
                 #Disable inheritance and keep current permissions.
                 $itemACL.SetAccessRuleProtection($False, $True)
-                Set-Acl -Path $itemPath -AclObject $itemACL
-                $itemUpdates.Add((Get-ItemInheritance -Path $itemPath))
+                Set-Acl -Path $fn -AclObject $itemACL
+                $results.Add((Get-ItemInheritance -Path $fn))
             }else{
-                Write-Host "Unable to reach $itemPath."
+                Write-Host "Unable to reach $fn."
             }
         }
 
-        return $itemUpdates
+        return $results
     }
 }
 
@@ -175,7 +176,9 @@ function Get-ItemInheritance{
     Location of the directory or file.
 
     .INPUTS
-    PS Objects with a property name of "Path" or "FullName" for the location of the item.
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
     PS Object with the following properties:
@@ -210,35 +213,33 @@ function Get-ItemInheritance{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [Alias('FullName')]
-        [string[]]$Path
+        [Alias('Path')]
+        [string[]]$FullName
     )
 
     begin{
-        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $fullNames = [System.Collections.Generic.List[string]]::new()
         $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
     process{
-        foreach($p in $Path){
-            $itemPaths.Add($p);
-        }
+        $fullNames.Add($FullName);
     }
 
     end{
-        foreach($item in $itemPaths){
-            if(Test-Path -Path $item){
-                $directoryACL = (Get-ACL -Path $item).Access
+        foreach($fn in $fullNames){
+            if(Test-Path -Path $fn){
+                $directoryACL = (Get-ACL -Path $fn).Access
                 $hasInheritance = $false
 
                 foreach($access in $directoryACL){
-                    if($access.IsInherited -eq $true){
+                    if($access.IsInherited -eq $True){
                         $result = [PSCustomObject]@{
-                            Path = $item;
-                            HasInheritance = $true
+                            FullName = $fn;
+                            HasInheritance = $True
                         }
 
-                        $hasInheritance = $true
+                        $hasInheritance = $True
                         $results.Add($result)
                         break
                     }
@@ -246,7 +247,7 @@ function Get-ItemInheritance{
 
                 if($hasInheritance -eq $false){
                     $results.Add([PSCustomObject]@{
-                        Path = $item;
+                        FullName = $fn;
                         HasInheritance = $false
                     })
                 }
@@ -272,7 +273,9 @@ function Get-ItemPermission{
     Location of the directory or file.
 
     .INPUTS
-    You can pipe PSObjects to this function that contain a property named "Path" or "FullName".
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
     PS Object with the following properties:
@@ -317,27 +320,25 @@ function Get-ItemPermission{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $true)]
-        [Alias('FullName')]
-        [string[]]$Path
+        [Alias('Path')]
+        [string[]]$FullName
     )
 
     begin{
-        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $fullNames = [System.Collections.Generic.List[string]]::new()
         $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
     process{
-        foreach($p in $Path){
-            $itemPaths.Add($p)
-        }
+        $fullNames.Add($FullName)
     }
 
     end{
-        foreach($item in $itemPaths){
-            $itemResults = Get-Acl -Path $item | Select-Object -ExpandProperty Access
+        foreach($fn in $fullNames){
+            $itemResults = Get-Acl -Path $fn | Select-Object -ExpandProperty Access
 
             foreach($result in $itemResults){
-                Add-Member -InputObject $result -MemberType "NoteProperty" -Name "Path" -Value $item
+                Add-Member -InputObject $result -MemberType "NoteProperty" -Name "FullName" -Value $fn
                 $results.Add($result)
             }
         }
@@ -346,7 +347,7 @@ function Get-ItemPermission{
     }
 }
 
-function Get-UserPermission{
+function Get-UserItemPermission{
     <#
     .SYNOPSIS
     Gets user permissions for an item.
@@ -361,10 +362,13 @@ function Get-UserPermission{
     User account the function is checking for.
 
     .INPUTS
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
     PS Object with the following properties:
-        [string]Path
+        [string]FullName
         [string]AccessControlType   Allow / Deny
         [string]FileSystemRights    Permissions
         [string]IdentityReference   Account
@@ -400,35 +404,36 @@ function Get-UserPermission{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $true)]
-        [Alias('FullName')]
-        [string[]]$Path,
+        [Alias('Path')]
+        [string]$FullName,
 
         [parameter(Mandatory = $true)]
         [string]$SamAccountName
     )
 
     begin{
-        $itemPaths = [System.Collections.Generic.List[string]]::new()
+        $fullNames = [System.Collections.Generic.List[string]]::new()
+        $itemPermissions = [System.Collections.Generic.List[psobject]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
     Process{
-        foreach ($p in $Path) {
-            $itemPaths.Add($p);
-        }
+        $fullNames.Add($FullName);
     }
 
     end{
-        $itemPathsArray = [string[]]::new($itemPaths.Count)
+        $itemPermissions = $fullNames | Get-ItemPermission
+        
+        foreach($item in $itemPermissions){
+            $identityReferenceRaw = $item.IdentityReference
+            $identityReference = $identityReferenceRaw.split("\")[-1]
 
-        $counter = 0
-        foreach ($p in $itemPaths) {
-            $itemPathsArray[$counter] = $p
-            $counter++
+            if($identityReference -eq $SamAccountName){
+                $results.Add($item)
+            }
         }
 
-        $userPermissions = Get-ItemPermission -Path $itemPathsArray | Where-Object -Property IdentityReference -Match $SamAccountName
-
-        return $userPermissions
+        return $results
     }
 }
 
