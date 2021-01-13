@@ -425,11 +425,14 @@ function Get-UserItemPermission{
         $itemPermissions = $fullNames | Get-ItemPermission
         
         foreach($item in $itemPermissions){
-            $identityReferenceRaw = $item.IdentityReference
-            $identityReference = $identityReferenceRaw.split("\")[-1]
-
-            if($identityReference -eq $SamAccountName){
-                $results.Add($item)
+            $identityReferenceRaw = $item.IdentityReference -as [string]
+            
+            if($identityReferenceRaw.contains("\") ){
+                $identityReference = $identityReferenceRaw.split("\")[-1]
+                
+                if($identityReference -eq $SamAccountName){
+                    $results.Add($item)
+                }
             }
         }
 
