@@ -213,7 +213,7 @@ function Get-ItemInheritance{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [Alias('Path')]
+        [alias('Path')]
         [string[]]$FullName
     )
 
@@ -441,19 +441,34 @@ function Get-UserItemPermission{
 }
 
 ###
-function Remove-UserPermission{
+function Remove-UserItemPermission{
     <#
     .SYNOPSIS
+    Removes NTFS rules from an item that apply to a user.
 
     .DESCRIPTION
+    Removes NTFS rules from a directory or file that apply to a specific user.
 
-    .PARAMETER Path
+    .PARAMETER FullName
+    Full path the directory or file.
 
     .PARAMETER SamAccountName
+    The user that will be removed by the function.
 
     .INPUTS
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
+    PS Objects with the following properties:
+        [string]FullName
+        [System.Security.AccessControl.AccessControlType]AccessControlType
+        [System.Security.AccessControl.FileSystemRights]FileSystemRights
+        [System.Security.Principal.IdentityReference]IdentityReference
+        [System.Security.AccessControl.InheritanceFlags]InheritanceFlags
+        [bool]IsInherited
+        [System.Security.AccessControl.PropagationFlags]PropagationFlags 
 
     .NOTES
 
@@ -470,13 +485,14 @@ function Remove-UserPermission{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [string]$Path,
+        [alias("Path")]
+        [string]$FullName,
 
         [parameter(Mandatory = $true)]
         [string]$SamAccountName
     )
 
-    $dirACL = Get-Acl -Path $Path
+    $dirACL = Get-Acl -Path $FullName
 
     foreach($access in $dirACL.Access){
         if($access.IdentityReference.Value -match $SamAccountName){
@@ -484,12 +500,12 @@ function Remove-UserPermission{
         }
     }
 
-    Set-Acl -Path $Path -AclObject $dirACL
+    Set-Acl -Path $FullName -AclObject $dirACL
 
-    return Get-DirectoryPermission -Path $Path
+    return Get-ItemPermission -FullName $FullName
 }
 
-function Set-UserPermission{
+function Set-UserItemPermission{
     <#
     .SYNOPSIS
 
@@ -517,7 +533,8 @@ function Set-UserPermission{
     [CmdletBinding()]
     param(
         [parameter(ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Mandatory = $True)]
-        [string]$Path,
+        [alias("Path")]
+        [string]$FullName,
 
         [parameter(Mandatory = $true)]
         [string]$SamAccountName,
@@ -531,10 +548,10 @@ function Set-UserPermission{
         [string]$Access
     )
 
-    $acl = Get-Acl -Path $Path
+    $acl = Get-Acl -Path $FullName
     $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $Access)
     $acl.SetAccessRule($aclRule)
-    Set-Acl -Path $Path -AclObject $acl
+    Set-Acl -Path $FullName -AclObject $acl
 
-    return Get-ItemPermission -Path $Path
+    return Get-ItemPermission -Path $FullName
 }
