@@ -17,7 +17,7 @@ function Disable-ItemInheritance{
     Disables inheritance on an item.
 
     .DESCRIPTION
-    Disables inheritance on a directory or folder. All current permissions are maintained. Current permissions are retained.
+    Disables inheritance on a directory or folder. All current permissions are maintained. Current permissions are retained. Returns PS Objects with properties confirming that inheritance has been disabled on the item.
 
     .PARAMETER Path
     Location of the directory or file.
@@ -94,7 +94,7 @@ function Enable-ItemInheritance{
     Enables inheritance on an item.
 
     .DESCRIPTION
-    Enables inheritance on a directory or folder. All current perrmissions are maintained. Current permissions are retained.
+    Enables inheritance on a directory or folder. All current perrmissions are maintained. Current permissions are retained. Returns PS Objects with properties confirming that inheritance has been enabled on the item.
 
     .PARAMETER Path
     Location of the directory or file.
@@ -279,7 +279,7 @@ function Get-ItemPermission{
 
     .OUTPUTS
     PS Object with the following properties:
-        [string]Path
+        [string]FullName
         [string]AccessControlType   Allow / Deny
         [string]FileSystemRights    Permissions
         [string]IdentityReference   Account
@@ -447,7 +447,7 @@ function Remove-UserItemPermission{
     Removes NTFS rules from an item that apply to a user.
 
     .DESCRIPTION
-    Removes NTFS rules from a directory or file that apply to a specific user.
+    Removes NTFS rules from a directory or file that apply to a specific user. Returns PS Objects with properties confirming the removal of user permission rules.
 
     .PARAMETER FullName
     Full path the directory or file.
@@ -473,6 +473,19 @@ function Remove-UserItemPermission{
     .NOTES
 
     .EXAMPLE 
+    Remove-UserItemPermission -FullName "C:\Folder\Doc.txt" -SamAccountName "Carl"
+
+    This removes all NTFS rules from "Doc.txt" and apply to the user "Carl".
+
+    .EXAMPLE
+    "C:\Folder\Doc.txt" | Remove-UserItemPermission -SamAccountName "Carl"
+
+    This removes all NTFS rules from "Doc.txt" and apply to the user "Carl".
+
+    .EXAMPLE
+    Get-ChildItem -Path "C:\Folder" | Remove-UserItemPermission -SamAccountName "Carl"
+
+    This removes all NTFS rules from all directories and files in the "Folder" directory that apply to the user "Carl".
 
     .LINK
     By Ben Peterson
@@ -492,30 +505,82 @@ function Remove-UserItemPermission{
         [string]$SamAccountName
     )
 
-    $dirACL = Get-Acl -Path $FullName
-
-    foreach($access in $dirACL.Access){
-        if($access.IdentityReference.Value -match $SamAccountName){
-            $dirACL.RemoveAccessRule($access) | Out-Null
-        }
+    begin{
+        $fullNames = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
     }
 
-    Set-Acl -Path $FullName -AclObject $dirACL
+    process{
+        $fullNames.Add($FullName)
+    }
 
-    return Get-ItemPermission -FullName $FullName
+    end{
+        foreach($fn in $fullNames){
+            $dirACL = Get-Acl -Path $fn
+
+            foreach($access in $dirACL.Access){
+                if($access.IdentityReference.Value -match $SamAccountName){
+                    $dirACL.RemoveAccessRule($access) | Out-Null
+                }
+            }
+
+            Set-Acl -Path $fn -AclObject $dirACL
+        }
+
+        foreach($fn in $fullNames){
+            $permissions = Get-ItemPermission -FullName $fn
+
+            foreach($permission in $permissions){
+                $results.Add($permission)
+            }
+        }
+
+        return $results
+    }
 }
 
+###
 function Set-UserItemPermission{
     <#
     .SYNOPSIS
+    Sets a permission for a user on an item.
 
     .DESCRIPTION
+    Sets an NTFS rule for a user on a directory or file. Returns PS Objects confirming the added rule. 
 
-    .PARAMETER Name
+    .PARAMETER FullName
+    Full path and name of the directory or file.
+
+    .PARAMETER SamAccountName
+    User account.
+
+    .PARAMETER Permission
+    The type of permission that will be included in the rule. Valid options are:
+        FullControl
+        Modify
+        ReadAndExecute
+        Read
+        Write
+
+    .PARAMETER Access
+    The type of access that the rule will give. Valid options are:
+        Allow
+        Deny
 
     .INPUTS
+    PS Objects with one of the following properties:
+        [string]Path                Location of the item
+        [string]FullName            Location of the item
 
     .OUTPUTS
+     PS Object with the following properties:
+        [string]FullName
+        [string]AccessControlType   Allow / Deny
+        [string]FileSystemRights    Permissions
+        [string]IdentityReference   Account
+        [string]InheritanceFlags    
+        [bool]IsInherited           True / False
+        [string]PropagationFlags    
 
     .NOTES
 
@@ -553,5 +618,5 @@ function Set-UserItemPermission{
     $acl.SetAccessRule($aclRule)
     Set-Acl -Path $FullName -AclObject $acl
 
-    return Get-ItemPermission -Path $FullName
+    return Get-UserItemPermission -Path $FullName -SamAccountName $SamAccountName
 }
