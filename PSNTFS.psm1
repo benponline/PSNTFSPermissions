@@ -1,4 +1,5 @@
 #Design to be used with Get-ChildItem
+#Add switch to prevent output?
 
 #Add-UserReadPermission
 #Add-UserModifyPermission
@@ -440,7 +441,6 @@ function Get-UserItemPermission{
     }
 }
 
-###
 function Remove-UserItemPermission{
     <#
     .SYNOPSIS
@@ -573,7 +573,7 @@ function Set-UserItemPermission{
         [string]FullName            Location of the item
 
     .OUTPUTS
-     PS Object with the following properties:
+    PS Object with the following properties:
         [string]FullName
         [string]AccessControlType   Allow / Deny
         [string]FileSystemRights    Permissions
@@ -584,7 +584,15 @@ function Set-UserItemPermission{
 
     .NOTES
 
-    .EXAMPLE 
+    .EXAMPLE
+    Set-UserItemPermission -FullName "\\fileserver\Folder" -SamAccountName "Thor" -Permission "modify" -Access "allow"
+
+    Addes an NTFS rule giving "Thor" modify permissions for the "Folder" directory.
+
+    .EXAMPLE
+    "\\fileserver\Folder","\\fileserver\FolderA" | Set-UserItemPermission -SamAccountName "Thor" -Permission "modify" -Access "allow"
+
+    Addes an NTFS rules giving "Thor" modify permissions for the "Folder" and "FolderA" directories.
 
     .LINK
     By Ben Peterson
@@ -613,10 +621,31 @@ function Set-UserItemPermission{
         [string]$Access
     )
 
-    $acl = Get-Acl -Path $FullName
-    $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $Access)
-    $acl.SetAccessRule($aclRule)
-    Set-Acl -Path $FullName -AclObject $acl
+    begin{
+        $fullNames = [System.Collections.Generic.List[string]]::new()
+        $results = [System.Collections.Generic.List[psobject]]::new()
+    }
 
-    return Get-UserItemPermission -Path $FullName -SamAccountName $SamAccountName
+    process{
+        $fullNames.Add($FullName)
+    }
+
+    end{
+        foreach($fn in $fullNames){
+            $acl = Get-Acl -Path $fn
+            $aclRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SamAccountName,$Permission,"ContainerInherit, ObjectInherit", "None", $Access)
+            $acl.SetAccessRule($aclRule)
+            Set-Acl -Path $fn -AclObject $acl
+        }
+
+        foreach($fn in $fullNames){
+            $updatedPermissions = Get-UserItemPermission -Path $fn -SamAccountName $SamAccountName
+
+            foreach($up in $updatedPermissions){
+                $results.Add($up)
+            }
+        }
+    
+        return $results
+    }
 }
