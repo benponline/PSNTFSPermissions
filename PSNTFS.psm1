@@ -419,7 +419,7 @@ function Get-UserItemPermission{
     }
 
     Process{
-        $fullNames.Add($FullName);
+        $fullNames.Add($FullName)
     }
 
     end{
@@ -539,7 +539,6 @@ function Remove-UserItemPermission{
     }
 }
 
-###
 function Set-UserItemPermission{
     <#
     .SYNOPSIS
