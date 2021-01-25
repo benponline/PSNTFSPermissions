@@ -1,5 +1,6 @@
 #Design to be used with Get-ChildItem
 #Add switch to prevent output?
+#Should I user "UserLogOnName" as primary input over "SamAccountName". Make SamAccountName an alias?
 
 #Add-UserReadPermission
 #Add-UserModifyPermission
