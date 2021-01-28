@@ -1,5 +1,5 @@
 # PSNTFS
-This module contains functions useful for administrating a Windows Active Directory domain. Many of the functions are designed to work with eachother. Functions that gather information on users or computers can be piped into functions that take an action. For instance, you can pipe a function that returns computers that have not logged onto the network for 30 days into a function that disables computer accounts. In a single line of code, you can disable all the inactive computers in active directory. There are a wide variety of functions that perform other tasks like sending magic packets for wake on lan, measuring directory and sub-directory sizes, gathering large files, and other tasks. Every function is fully documented and works with the `Get-Help` function. 
+This module contains functions useful for managing NTFS permissions for share folders and files in a Windows domain. These functions are designed to work well with `Get-ChildItem`. You can pipe directories or files from `Get-ChildItem` to any of these functions to gather or change permissions. Every function is fully documented and works with the `Get-Help` function. 
 
 This module is written for PowerShell Core and tested with Windows 10 machines. I am actively developing this module alongside my work as a system administrator. I use this module every day.
 
@@ -16,93 +16,16 @@ This module is written for PowerShell Core and tested with Windows 10 machines. 
 7. Open a new PowerShell session and you are good to go.
 
 ## Functions
-`Disable-Computer` Disables a computer.
+`Disable-ItemInheritance` Disables inheritance on an item.
 
-`Disable-User` Disables a user.
+`Enable-ItemInheritance` Enables inheritance on an item.
 
-`Enable-WakeOnLan` Configures a computer to allow wake on lan.
+`Get-ItemInheritance` Gets the inheritance status of an item.
 
-`Get-AccessedFile` Gets all files in a directory that have been accessed in the last 24 hours.
+`Get-ItemPermission` Gets the NTFS permissions from an item.
 
-`Get-ActiveComputer` Gets a list of computers that have logged onto the domain in the last 30 days.
+`Get-UserItemPermission` Gets user permissions for an item.
 
-`Get-ActiveFile` Gets all files in a directory that have been written in the last 24 hours.
+`Remove-UserItemPermission` Removes NTFS rules from an item that apply to a user.
 
-`Get-ActiveUser` Gets a list of all users that have logged on in the last 30 days.
-
-`Get-ChildItemLastAccessTime` Gets all files in a directory and returns information including file name and last access time.
-
-`Get-ChildItemLastWriteTime` Gets all files in a directory and returns information including last write time.
-
-`Get-ComputerCurrentUser` Gets the current user logged onto a computer.
-`Get-ComputerDriveInformation` Gets information about the drives on a computer.
-
-`Get-ComputerFailedLogonEvent` Gets failed logon events from a computer in the last day.
-
-`Get-ComputerInformation` Gets general information about a computer.
-
-`Get-ComputerIPAddress` Gets the IPv4 address of a computer.
-
-`Get-ComputerLastBootUpTime` Gets the last time a computer booted up.
-
-`Get-ComputerLastLogonTime` Gets the last time a computer logged onto the domain.
-
-`Get-ComputerMemory` Gets the memory in GB of a computer.
-
-`Get-ComputerModel` Gets the model of a computer.
-
-`Get-ComputerOS` Gets the operating system name of a computer.
-
-`Get-ComputerPhysicalDiskInformation` Gets information about the physical disks of a computer.
-
-`Get-ComputerProcessor` Gets the processor of a computer.
-
-`Get-ComputerShareFolder` Gets all of the share folders on a computer.
-
-`Get-ComputerSoftware` Gets all of the installed software on a computer.
-
-`Get-ComputerSystemEvent` Gets system events from a computer.
-
-`Get-CredentialExportToXML` Gets credentials from the user and exports them to location provided by the user.
-
-`Get-DirectorySize` Gets the size of a directory.
-
-`Get-DisabledComputer` Gets a list of all computers that are disabled.
-
-`Get-DisabledUser` Gets a list of all users that are disabled. 
-
-`Get-InactiveComputer` Gets computers that have not logged onto the domain for more than 30 days.
-
-`Get-InactiveFile` Gets all files in a directory that have not been accessed in the last 24 hours.
-
-`Get-InactiveUser` Gets a list of all users that have not logged on to the domain for 30 days.
-
-`Get-LargeFile` Gets files larger than 500 MB from a directory.
-
-`Get-OfflineComputer` Gets all computers that are offline. 
-
-`Get-OnlineComputer` Gets computers that are online.
-
-`Get-OUComputer` Gets computers from a specific organizational unit.
-
-`Get-OUUser` Gets users from a specific organizational unit.
-
-`Get-SubDirectorySize` Gets directory names and sizes.
-
-`Get-UserActiveLogon` Gets all computers where a user is logged in.
-
-`Get-UserLastLogonTime` Gets the last time a user logged onto the domain.
-
-`Move-Computer` Moves a computer to an organizational unit.
-
-`Move-User` Moves a user to an organizational unit.
-
-`Remove-Computer` Removes a computer from Active Directory.
-
-`Remove-User` Removes a user from Active Directory.
-
-`Set-ComputerIP` Sets the IP address of a computer.
-
-`Set-UserChangePassword` Sets user account to require a password change at the next log on.
-
-`Start-Computer` Starts a remote computer by sending a magic packet.
+`Set-UserItemPermission` Sets a permission for a user on an item.
