@@ -1,7 +1,12 @@
 <#
+This module is meant to be used in a Windows Domain by a domain administrator.
 
-
-https://blog.netwrix.com/2018/04/18/how-to-manage-file-system-acls-with-powershell-scripts/#How%20to%20disable%20and%20enable%20permission%20inheritance
+By:
+Ben Peterson
+linkedin.com/in/benponline
+github.com/benponline
+twitter.com/benponline
+paypal.me/teknically
 #>
 
 function Disable-ItemInheritance{

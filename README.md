@@ -1,5 +1,5 @@
 # PSNTFS
-This module contains functions useful for managing NTFS permissions for share folders and files in a Windows domain. These functions are designed to work well with `Get-ChildItem`. You can pipe directories or files from `Get-ChildItem` to any of these functions to gather or change permissions. Every function is fully documented and works with the `Get-Help` function. 
+This module contains functions useful for managing NTFS permissions for folders and files in a Windows domain. These functions are designed to work well with `Get-ChildItem`. You can pipe directories or files from `Get-ChildItem` to any of these functions to gather or change permissions. Every function is fully documented and works with the `Get-Help` function. 
 
 This module is written for PowerShell Core and tested with Windows 10 machines. I am actively developing this module alongside my work as a system administrator. I use this module every day.
 
