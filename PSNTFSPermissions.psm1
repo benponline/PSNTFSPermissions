@@ -1,17 +1,8 @@
-#Design to be used with Get-ChildItem
-#Add switch to prevent output?
-#Should I user "UserLogOnName" as primary input over "SamAccountName". Make SamAccountName an alias?
+<#
 
-#Add-UserReadPermission
-#Add-UserModifyPermission
-#Add-UserFullControlPermission
-#Set-UserAsOwner
-#Remove-UserReadPermission
-#Remove-UserModifyPermission
-#Remove-UserFullControlPermission
-#Get-UserPermission
 
-#https://blog.netwrix.com/2018/04/18/how-to-manage-file-system-acls-with-powershell-scripts/#How%20to%20disable%20and%20enable%20permission%20inheritance
+https://blog.netwrix.com/2018/04/18/how-to-manage-file-system-acls-with-powershell-scripts/#How%20to%20disable%20and%20enable%20permission%20inheritance
+#>
 
 function Disable-ItemInheritance{
     <#
