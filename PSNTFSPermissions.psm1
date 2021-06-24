@@ -609,7 +609,7 @@ function Set-UserItemPermission{
         [string]$SamAccountName,
 
         [parameter(Mandatory = $true)]
-        [ValidateSet("FullControl","Modify","ReadAndExecute","ListFolderContents","Read","Write")]
+        [ValidateSet("FullControl","Modify","ReadAndExecute","Read","Write")]
         [string]$Permission,
 
         [parameter(Mandatory = $true)]
